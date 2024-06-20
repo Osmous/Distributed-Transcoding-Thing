@@ -1,0 +1,14 @@
+[DiscoverySocket]
+# Node discovery port number (Node side only, can be different from server side)
+discoveryPort = 37777
+# Program id string. MAKE SURE THIS IS THE SAME FOR BOTH SERVER AND NODES
+magicString = Uism7Q
+
+[TransferSocket]
+#file transfer server port number (Node side only, can be different from server side)
+recvPort = 37778
+
+[Folders]
+#leave this alone. stuff in here will get deleted anyways.
+processed_folder = node_processed_folder
+recv_folder = node_recv_folder

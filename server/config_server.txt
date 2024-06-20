@@ -1,0 +1,37 @@
+[DiscoverySocket]
+# Node discovery port number (Server side only, can be different from node side)
+discoveryPort = 49152
+# Program id string. MAKE SURE THIS IS THE SAME FOR BOTH SERVER AND NODES
+magicString= Uism7Q
+
+[TransferSocket]
+#file transfer server port number (Server side only, can be different from node side)
+recvPort = 49153
+
+[ffmpeg]
+#replace ~ with : in server code
+#if manually changing here then replace all : with a ~
+optionString=-c~v hevc_nvenc -b~v 1200k -c~a copy
+
+# burn in language. comma seperated. argument comparison is treated as OR (example. eng OR english will be triggered). case insensitive.
+# leave blank to disable burn in. attaching subtitles softly done using option string
+burnSubtitle = eng,english
+
+[Folders]
+# path to watch folder (check this folder for new videos to process)
+watch_folder = server_watch_folder
+# path to encoded folder (output folder for processed videos)
+encoded_folder = server_encoded_folder
+
+[Schedule]
+# enable scheduled turning on of node PCs. NO SECURITY CODED IN. AT YOUR OWN RISK
+enabled = false
+# Type of schedule. accepts daily, weekly 
+type = weekly
+# Day of the week, ignored if type = daily. typed in full. case insensitive
+day = monday
+# Time of day to execute. 24 hours clock, following the format HH-MM
+time = 01-30
+macAddr=[
+    "D8-5E-D3-0E-C8-6E"
+    ]
