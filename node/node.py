@@ -117,16 +117,16 @@ class VideoTransferNode:
                 filename,options,burnSubtitles= data[0],data[1],data[2]
                 subtitle_string=""
                 cwd = os.getcwd()
-                print(cwd)
-
+                # print(cwd)
                 inputfile = os.path.join(self.watch_folder, filename)
                 outputfile=os.path.join(self.fin_folder, filename.split(".")[0])
-                print(inputfile)
+                # print(inputfile)
 
                 if burnSubtitles != "NIL":
                     subtitlefilter_input = "{}/{}".format(self.watch_folder.replace("\\","/"),filename)
+                    
                     desired_language = burnSubtitles.split(",")
-                    ffprobe_command = f'ffprobe -v error -select_streams s -show_entries stream_tags=language -of csv=p=0 -i "{inputfile}"'
+                    ffprobe_command = f"ffprobe -v error -select_streams s -show_entries stream_tags=language -of csv=p=0 -i \"{inputfile}\""
                     result = subprocess.run(ffprobe_command, capture_output=True,text=True,cwd=cwd)
                     stream_index = None
                     for x,line in enumerate(result.stdout.splitlines()):
@@ -138,9 +138,10 @@ class VideoTransferNode:
                         subtitle_string=""
                         print("missing index")
                     else:
-                        subtitle_string=f'-vf subtitles="{subtitlefilter_input}":si={stream_index} '
-
-                command_string = f'ffmpeg -y -v error -i "{inputfile}" {subtitle_string}{options} "{outputfile}.mp4"'
+                        # print(subtitlefilter_input)
+                        subtitle_string= "-vf \"subtitles=\'{}\':si={}\" ".format(subtitlefilter_input,stream_index)
+                        # print(subtitle_string)
+                command_string = f"ffmpeg -y -v error -i \"{inputfile}\" {subtitle_string}{options} \"{outputfile}.mp4\""
                 # print("dsadsadsadasdads==============================================================================")
                 if subprocess.run(command_string,text=True, cwd=cwd).returncode == 0:
                     print ("FFmpeg Script Ran Successfully")
@@ -191,6 +192,11 @@ class NodeDiscovery(threading.Thread):
                                 continue
                             if data[1] == "shutdown":
                                 subprocess.run("shutdown /s /t 10")
+                                
+                            if data[1] == "kill":
+                                if self.shared_resource.connected:
+                                    sock.sendto("{},offline,{}".format(self.magicString,self.transfer_recv_port).encode(), ("255.255.255.255", 49152))
+                                os.kill(os.getpid(),signal.SIGINT)
                     else:
                         sock.sendto("{},online,{}".format(self.magicString,self.transfer_recv_port).encode(), ("255.255.255.255", 49152))
                         data, addr = sock.recvfrom(1024)
@@ -210,13 +216,16 @@ class NodeDiscovery(threading.Thread):
     def stop(self):
         self.running = False
 
-
+def handler(signum, frame):
+    raise KeyboardInterrupt
 
 def main():
     # Add config handler here
     #
     config = configparser.ConfigParser()
     config.read("config_node.txt")
+    signal.signal(signal.SIGINT,handler)
+
 
     discovery_port = int(config['DiscoverySocket']['discoveryPort'])
     magicString = config['DiscoverySocket']['magicString']
@@ -233,8 +242,6 @@ def main():
 
     video_transfer_server = VideoTransferNode('0.0.0.0', shared_resource,transfer_recv_port,watch_folder,fin_folder)
     node_discovery = NodeDiscovery(discovery_port, transfer_recv_port,shared_resource,magicString)
-
-
     node_discovery.start()
 
     try:

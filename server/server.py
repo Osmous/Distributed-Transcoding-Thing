@@ -35,7 +35,7 @@ class FileWatcher(threading.Thread):
     def on_created(self, event):
         # TODO check if video is already in wanted codec and bitrate
         with self.shared_resource.lock:
-            self.shared_resource.files.append(os.path.join(os.getcwd,event.src_path))
+            self.shared_resource.files.append(event.src_path)
             print(f"Added to queue: {event.src_path}")
 
     def run(self):
@@ -139,7 +139,7 @@ class VideoTransferServer():
                     print(f"Received completed video {filename} from {addr}")
                     os.remove(os.path.join(self.folder_path,old_filename))
                     with self.shared_resource.lock:
-                        self.shared_resource.files_tbc.remove(old_filename)
+                        self.shared_resource.files_tbc.remove(os.path.join(self.folder_path,old_filename))
                 except socket.timeout:
                     continue
 
